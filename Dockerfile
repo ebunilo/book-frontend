@@ -16,17 +16,20 @@ COPY . .
 # Build the React app
 RUN npm run build
 
-# Stage 2: Serve the React app with Nginx
-FROM nginx:alpine
+# Stage 2: Serve the React app with a static file server
+FROM node:14
 
-# Remove the default Nginx website
-RUN rm -rf /usr/share/nginx/html/*
+# Install 'serve' to serve static files
+RUN npm install -g serve
 
-# Copy the build files from the previous stage to the Nginx web server
-COPY --from=build /usr/src/app/build /usr/share/nginx/html
+# Copy the build files from the previous stage
+COPY --from=build /usr/src/app/build /usr/src/app/build
 
-# Expose the port the app runs on
-EXPOSE 80
+# Set the working directory
+WORKDIR /usr/src/app/build
 
-# Start Nginx
-CMD ["nginx", "-g", "daemon off;"]
+# Serve the static files
+CMD ["serve", "-s", "."]
+
+# Expose port 5000
+EXPOSE 5000
