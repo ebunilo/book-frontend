@@ -1,5 +1,5 @@
-# Use the official Node.js image as the base image
-FROM node:14
+# Stage 1: Build the React app
+FROM node:14 as build
 
 # Set the working directory
 WORKDIR /usr/src/app
@@ -16,11 +16,14 @@ COPY . .
 # Build the React app
 RUN npm run build
 
-# Use a lightweight web server to serve the static files
+# Stage 2: Serve the React app with Nginx
 FROM nginx:alpine
 
-# Copy the build files to the Nginx web server
-COPY --from=0 /usr/src/app/build /usr/share/nginx/html
+# Remove the default Nginx website
+RUN rm -rf /usr/share/nginx/html/*
+
+# Copy the build files from the previous stage to the Nginx web server
+COPY --from=build /usr/src/app/build /usr/share/nginx/html
 
 # Expose the port the app runs on
 EXPOSE 80
